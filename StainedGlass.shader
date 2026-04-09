@@ -100,21 +100,19 @@ Shader "Custom/StainedGlass"
                 
                 float gradientT = frac(_Time.y * _ColorSpeed - radialDistance * _RippleAmount + noisePhase);
 
-                half4 color;
-                float t;
+                //Calculate our t values for a 3 color gradient
+                float t1 = saturate(gradientT / 0.33);
+                float t2 = saturate((gradientT - 0.33) / 0.33);
+                float t3 = saturate((gradientT - 0.66) / 0.34);
 
-                if (gradientT<0.33){
-                    t = gradientT/0.33;
-                    color = lerp(_Color1, _Color2, t);
-                }
-                else if (gradientT<0.66){
-                    t = (gradientT-0.33)/0.33;
-                    color = lerp(_Color2, _Color3, t);
-                }
-                else{
-                    t = (gradientT-0.66)/0.34;
-                    color = lerp(_Color3, _Color4, t);
-                }
+                //Chain the values with lerps alone
+                half4 gradient1 = lerp(_Color1, _Color2, t1);
+                half4 gradient2 = lerp(_Color2, _Color3, t2);
+                half4 gradient3 = lerp(_Color3, _Color4, t3);
+
+                // Blend them all together with steps and lerps
+                half4 color = lerp(gradient1, gradient2, step(0.33, gradientT));
+                color = lerp(color, gradient3, step(0.66, gradientT));
 
                 return color * softenedSquare;
             }
